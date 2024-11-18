@@ -30,6 +30,10 @@ u_name = st.text_input("Enter your name")
 
 st.markdown(f'Your name is {u_name}') # don't really want it printing without reciving input yet. so we'll work on that
 
+st.markdown('Company Selection Dropdown')
+c1 = st.selectbox(label = 'Companies', options = [data['company'].tolist()], key='c1')
+
+
 st.header('Descriptive Stats')
 st.write(data.describe())
 
