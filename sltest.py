@@ -23,16 +23,22 @@ raw = {
     "debt_eq": [62131, 87910, 14805, 52863, 149862, 204446, 186383, 76533, 33094]
 }
 
-raw_data = pd.DataFrame(raw)
+data = pd.DataFrame(raw)
+
+st.header('User Inputs')
+u_name = st.text_input("Enter your name")
+
+st.markdown(f'Your name is {u_name}') # don't really want it printing without reciving input yet. so we'll work on that
+
 st.header('Descriptive Stats')
-st.write(raw_data.describe())
+st.write(data.describe())
 
 st.header('Data Header')
-st.write(raw_data.head())
+st.write(data.head())
 
-st.header('Matplotlib Chart')
+st.subheader('Matplotlib Chart')
 fig,ax = plt.subplots(1,1)
-ax.scatter(x=raw_data['sales_vol'], y = raw_data['scope1'])
+ax.scatter(x=data['sales_vol'], y = data['scope1'])
 ax.set_xlabel('Sales Volume Millions')
 ax.set_ylabel('Scope 1 Emissions Tonnes')
 st.pyplot(fig)
@@ -40,3 +46,13 @@ st.pyplot(fig)
 # okay it's an altair issue. so can't ge those simple and pretty plots without messing with my python version unfortunately
 # st.header('Streamlit Native Chart')
 # st.bar_chart(data = raw_data, x = 'sales_vol', y = 'scope1', x_label='Sales Volume Millions', y_label='Scope 1 Emissions Tonnes')
+
+st.subheader('Plotly Scatterplot')
+st.markdown('**Sales Volume vs Scope 1 Emissions**')
+scatter_fig = px.scatter(data_frame = data, x = 'sales_vol', y = 'scope1', color = 'company',
+                         labels = {'sales_vol':'Sales Volume (Millions of Vehicles)',
+                                   'scope1': 'Scope 1 Emissions (tCO2e)',
+                                   'company': 'Financed Company'})
+st.plotly_chart(scatter_fig)
+# can also add title to the scatter_fig paramaeters but don't like how it looks, kinda squiches the plot don 
+#  title = 'Sales Volume vs Scope 1 Emissions'
