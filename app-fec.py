@@ -1,6 +1,5 @@
 import streamlit as st
 import pandas as pd
-import matplotlib.pyplot as plt
 import plotly.express as px
 
 # network url http://10.0.0.61:8501 
@@ -26,6 +25,8 @@ raw = {
 data = pd.DataFrame(raw)
 
 st.header('User Inputs')
+# start by just receiving and printint out the inputs
+
 u_name = st.text_input("Enter your name")
 
 st.markdown(f'Your name is {u_name}') # don't really want it printing without reciving input yet. so we'll work on that
