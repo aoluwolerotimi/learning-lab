@@ -26,13 +26,30 @@ data = pd.DataFrame(raw)
 
 st.header('User Inputs')
 # start by just receiving and printint out the inputs
+comp_form = st.form("u_comp")
+c_names = comp_form.multiselect(label = "Please select exactly four companies to provide loans to", 
+                      options= data['company'].unique(),
+                      max_selections= 4,
+                      key = 'c_names'
+                      )
+# consider this practice, more likely that i break it out so users know exactly which company they're selecting for
+# so let's say this is company 1 allocation
+c1_a = comp_form.slider(label="Please select your allocation for this company. A minimum of $25M must be allocated",
+                        min_value=25,
+                        max_value=425,
+                        step = 25)
 
-u_name = st.text_input("Enter your name")
 
-st.markdown(f'Your name is {u_name}') # don't really want it printing without reciving input yet. so we'll work on that
 
-st.markdown('Company Selection Dropdown')
-c1 = st.selectbox(label = 'Companies', options = [data['company'].tolist()], key='c1')
+# uncontained multiselect
+u_cs_1 = st.multiselect(label = "Please select exactly four companies to provide loans to", 
+                      options= data['company'].unique(),
+                      max_selections= 4,
+                      key='u_cs_1'
+                      )
+
+# returns a list. so let's check in the list that it's 4. 
+# multiselect already enforces spelling and not duplicating entries
 
 
 st.header('Descriptive Stats')
@@ -41,16 +58,6 @@ st.write(data.describe())
 st.header('Data Header')
 st.write(data.head())
 
-st.subheader('Matplotlib Chart')
-fig,ax = plt.subplots(1,1)
-ax.scatter(x=data['sales_vol'], y = data['scope1'])
-ax.set_xlabel('Sales Volume Millions')
-ax.set_ylabel('Scope 1 Emissions Tonnes')
-st.pyplot(fig)
-
-# okay it's an altair issue. so can't ge those simple and pretty plots without messing with my python version unfortunately
-# st.header('Streamlit Native Chart')
-# st.bar_chart(data = raw_data, x = 'sales_vol', y = 'scope1', x_label='Sales Volume Millions', y_label='Scope 1 Emissions Tonnes')
 
 st.subheader('Plotly Scatterplot')
 st.markdown('**Sales Volume vs Scope 1 Emissions**')
