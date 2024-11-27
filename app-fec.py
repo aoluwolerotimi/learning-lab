@@ -212,6 +212,8 @@ with st.form("user_allocations"):
                 """)
     c1 = st.selectbox(label = 'Please select your first company',
                       options = data['company'].unique(),
+                      index= None,
+                      placeholder= 'Select a company',
                       key = 'c1')
     c1_loan = st.slider(label = 'Please select your allocation to the first company',
                         min_value= 25,
@@ -221,6 +223,8 @@ with st.form("user_allocations"):
     
     c2 = st.selectbox(label = 'Please select your second company',
                       options = data['company'].unique(),
+                      index= None,
+                      placeholder= 'Select a company',
                       key = 'c2')
     c2_loan = st.slider(label = 'Please select your allocation to the second company',
                         min_value= 25,
@@ -230,6 +234,8 @@ with st.form("user_allocations"):
     
     c3 = st.selectbox(label = 'Please select your third company',
                       options = data['company'].unique(),
+                      index= None,
+                      placeholder= 'Select a company',
                       key = 'c3')
     c3_loan = st.slider(label = 'Please select your allocation to the third company',
                         min_value= 25,
@@ -239,6 +245,8 @@ with st.form("user_allocations"):
 
     c4 = st.selectbox(label = 'Please select your fourth company',
                       options = data['company'].unique(),
+                      index= None,
+                      placeholder= 'Select a company',
                       key = 'c4')
     c4_loan = st.slider(label = 'Please select your allocation to the fourth company',
                         min_value= 25,
@@ -270,9 +278,6 @@ with st.form("user_allocations"):
 if correct:
    results_df = calculations(data = data, selection = selection, funds = funds)
    user_output()
-#    analyze_portfolio(results_df)
-#    explain_abs_em(results_df)
-#    explain_pet(results_df, funds)
 else:
    pass
 
