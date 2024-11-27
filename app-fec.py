@@ -1,39 +1,15 @@
+### Package Imports ###
 import streamlit as st
 import pandas as pd
+import numpy as np
+import random 
 import plotly.express as px
 
 # network url http://10.0.0.61:8501 
 # until i deploy
 
-# def launch_loans():
-#     st.subheader("Time to make your loan allocations")
-#     loan_form = st.form('u_loans')
-#     c1_loan = loan_form.slider(label= f"Please select your allocation for {c_names[0]}. A minimum of $25M must be allocated",
-#                                 min_value = 25,
-#                                 max_value = 425,
-#                                 step = 25,
-#                                 key = 'c1')
-#     c2_loan = loan_form.slider(label= f"Please select your allocation for {c_names[1]}. A minimum of $25M must be allocated",
-#                                 min_value = 25,
-#                                 max_value = 425,
-#                                 step = 25,
-#                                 key = 'c2')
-#     c3_loan = loan_form.slider(label= f"Please select your allocation for {c_names[2]}. A minimum of $25M must be allocated",
-#                                 min_value = 25,
-#                                 max_value = 425,
-#                                 step = 25,
-#                                 key = 'c3')
-#     c4_loan = loan_form.slider(label= f"Please select your allocation for {c_names[3]}. A minimum of $25M must be allocated",
-#                                 min_value = 25,
-#                                 max_value = 425,
-#                                 step = 25,
-#                                 key = 'c4')
-#     l_submit = loan_form.form_submit_button('Submit')
-
-st.title('Financed Emissions Calculator')
-st.text('This is a web app to learn about financed emissions')
-st.markdown('### Introduction')
-
+###  Data, Variable, and User Defined Function Setup ### 
+## Data and Variables
 raw = {
     "company": ["Tesla", "Stellantis", "Subaru", "Kia", "Nissan", "Hyundai", "Honda", "BMW", "Volvo"],
     "scope1": [185000, 1641028, 232070, 365100, 697851, 723966, 1120000, 699713, 77000],
@@ -45,10 +21,190 @@ raw = {
 
 data = pd.DataFrame(raw)
 funds = 500
-# u_selections = {}
-st.header('User Inputs')
-# if dynamic set up still failing, change from multiselect maybe and put "Company 1" label on boxes
-# so users select everything at once and then the validations get checked at once 
+correct = False
+
+##  Functions 
+# Function to perform calculations based on allocation selection
+def calculations(data, selection, funds):
+  # Subsetting to the selected companies
+  df = data[data['company'].isin(selection.keys())].reset_index(drop=True)
+
+  # Create column for authorized amount
+  df['authorized'] = df['company'].map(selection)
+
+  # Create column for amount outstanding (random value upwards of 30%)
+
+  df['outstanding'] = df['authorized'].apply(lambda x: x * random.choice([0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0])).astype(int)
+
+  # Calculate per client total emissions in megatonnes
+  df['total_em'] = round((df['scope1'] + df['scope2'] + df['scope3']) / 1_000_000, 4)
+
+  # Calculate per client emissions intensity proxy
+  df['prod_intensity'] = round(df['total_em'] / df['sales_vol'], 2)
+
+  # Calculate attribution ratio
+  df['attr_ratio'] = df['outstanding'] / df['debt_eq']
+
+  # Calculate portfolio percentage
+  df['perc'] = df['authorized'] / funds
+
+  # Calculate absolute financed emissions in megatonnes and tonnes for printing
+  df['abs_em'] = df['attr_ratio'] * df['total_em']
+  df['abs_em_tonnes'] = (df['attr_ratio'] * df['total_em'] * 1_000_000).astype(int)
+
+  return df
+
+# Analyzing the portfolio
+def analyze_portfolio(results_df):
+
+  # Print absolute financed emissions values
+  for index, row in results_df.iterrows():
+      st.markdown(f"The ${row['authorized']} million loaned to {row['company']} generated {row['abs_em_tonnes']:,d} tCO2e")
+
+  # Calculate and print overall physical emissions intensity
+  portfolio_intensity = np.average(results_df['prod_intensity'], weights=results_df['perc'])
+  st.markdown(f"\nThe physical emissions intensity of this loan portfolio is {portfolio_intensity:.2f}")
+
+  # Create and display a donut chart for loan portfolio allocations
+  fig_donut = px.pie(
+      results_df,
+      names='company',
+      values='authorized',
+      title='Loan Portfolio Allocations Across Companies',
+      hole=0.4,
+      color = 'company',
+      color_discrete_map= {results_df.at[0,'company']:'lightcyan',
+                           results_df.at[1,'company']: 'cyan',
+                           results_df.at[2,'company']: 'royalblue',
+                           results_df.at[3,'company']: 'darkblue'}
+  )
+  st.plotly_chart(fig_donut)
+
+  # Create and display a horizontal bar chart for absolute financed emissions
+
+  fig_em = px.bar(
+      results_df,
+      x='abs_em_tonnes',
+      y='company',
+      title='Absolute Financed Emissions by Company',
+      labels={'abs_em_tonnes': 'Absolute Financed Emissions (tCO2e)', 'company': 'Company'},
+      orientation='h',
+      color = 'company',
+      color_discrete_sequence= ['lightcyan','cyan','royalblue', 'darkblue']
+  )
+  fig_em.update_layout(showlegend = False)
+  st.plotly_chart(fig_em)
+
+  # Create and display a horizontal bar chart for physical emissions intensity
+  fig_pet = px.bar(
+      results_df,
+      x='prod_intensity',
+      y='company',
+      title='Physical Emissions Intensity by Company',
+      labels={'prod_intensity': 'Physical Emissions Intensity (Emissions relative to vehicles sold)', 'company': 'Company'},
+      orientation='h',
+      color = 'company',
+      color_discrete_sequence= ['lightcyan','cyan','royalblue', 'darkblue']
+  )
+  fig_pet.update_layout(showlegend = False)
+  st.plotly_chart(fig_pet)
+
+
+
+
+# Explain results
+def explain_abs_em(results_df):
+  explanation = f"""
+  You loaned \${results_df.loc[0, 'authorized']} million to {results_df.loc[0, 'company']}.
+  Of that \${results_df.loc[0, 'authorized']} million, {results_df.loc[0, 'company']} used ${results_df.loc[0, 'outstanding']} million.
+
+  This amount that {results_df.loc[0, 'company']} accessed is used to calculate your attribution ratio,  representing your contribution to {results_df.loc[0, 'company']}'s activities for the year.
+  This ratio is calculated as the \${results_df.loc[0, 'outstanding']} million outstanding divided by  {results_df.loc[0, 'company']}'s debt and equity that year (${results_df.loc[0, 'debt_eq']:,d} million),
+  which yields a value of approximately {round(results_df.loc[0, 'attr_ratio'] * 100, 5)}%.
+
+  This ratio is then multiplied by {results_df.loc[0, 'company']}'s total emissions (across scopes 1, 2, and 3),  which came to {results_df.loc[0, 'total_em']} MtCO2e.
+  Expressed in tCO2e (converted from MtCO2e), this gives you your financed emissions value of {results_df.loc[0, 'abs_em_tonnes']:,d} tCO2e.
+  """
+
+  st.markdown(explanation)
+
+def explain_pet(results_df, funds):
+
+  portfolio_intensity = np.average(results_df['prod_intensity'], weights=results_df['perc'])
+
+  explanation = """
+  Recall that for a single company, their emissions intensity is a normalized view of their emissions relative to their
+  economic productivity.
+  In the absence of consistent information about production and average lifetime vehicle kilometers across produced vehicle
+  classes, we used the number of vehicles sold as a rough proxy.
+
+  Thus, for each company you loaned to, we calculated their emissions intensity as
+  their total emissions divided by vehicles sold for the year.
+  """
+
+  # Add emissions intensity explanation for each company
+  for index, row in results_df.iterrows():
+      explanation += f"""
+      For {row['company']}, this would be {row['total_em']} MtCO2e divided by {row['sales_vol']} million vehicles sold
+      --> {row['prod_intensity']} emissions intensity.
+      """
+
+  # Add portfolio proportion explanation for each company
+  explanation += "\nWe also computed the proportion of your total funds loaned out to each company,\nrepresenting its proportion of your auto sector financing.\n"
+  for index, row in results_df.iterrows():
+      explanation += f"""
+      For {row['company']}, that would be ${row['authorized']} million divided by ${funds} million
+      --> {round(row['perc'] * 100, 2)}%.
+      """
+
+  # Add portfolio intensity explanation
+  explanation += f"""
+  Taking a weighted average of the proportion per company and the emissions intensity per company,
+  we arrive at a physical emissions intensity of {portfolio_intensity}.
+  """
+
+  st.markdown(explanation)
+
+def user_output():
+   st.markdown('### Your Results')
+   analyze_portfolio(results_df)
+
+   st.markdown('### Understanding Your Results')
+   st.markdown('#### Calculating Absolute Emissions')
+   st.markdown('Let\'s walk through an example to understand how the absolute financed emissions were calculated')
+   explain_abs_em(results_df)
+
+   st.markdown('#### Calculating Physical Emissions Intensity')
+   st.markdown(f"""
+    Now let's walk through how your portfolio intensity value was derived.
+
+    Recall that for a single company, their emissions intensity is a normalized view of their emissions relative to their economic productivity. In the asbcence of consistent information about production and average lifetime vehicle kilometres across produced vehicle classes, we used number of vehicles sold as a rough proxy.
+
+    Thus, for each company you loaned to, we calculated their emissions intensity as their total emissions divided by vehicles sold for the year.
+               """)
+   explain_pet(results_df, funds)
+
+   st.markdown('**Congrats! :tada: Through this simplified example, you\'ve learned a little bit about how institutions measure their financed emissions.**')
+
+
+
+##########
+### Streamlit App ###
+
+st.title('Financed Emissions Calculator')
+st.markdown('### The Scenario')
+st.markdown(f"""  
+It is 2020 and you are tasked with allocating loan funding to select automakers on behalf of your institution. You have $500 million which must be allocated to four different firms.
+After 1 year, you will evaluate your resulting climate metrics. Namely, your **absolute financed emissions** as well as the **phyisical emissions intensity** for your auto sector loan portfolio.
+
+**Understanding Absolute Emissions:**
+This measures the share of the companies' emissions financed by your loans.
+
+**Understanding Physical Emissions Intensity:**
+For a given company, physical emissions intensity provides a view of its emissions relative to its economic activity. The resulting metrics allows better comparability across companies or portfolios.
+            """)
+
+st.markdown('#### Creating Your Loan Portofolio')
 
 with st.form("user_allocations"):
     st.markdown(f"""Select the 4 companies you'd like to authorize loans to as well as how much you'd like to loan them.
@@ -99,6 +255,10 @@ with st.form("user_allocations"):
         # validate total amount is 500 and store results of validation
         if (total_c == 4) & (total_l == funds):
             st.success("Thank you for your submission, check out your results below")
+            correct = True
+            # create the dictionary 
+            selection = {c1:c1_loan,c2:c2_loan, c3:c3_loan, c4:c4_loan}
+            st.write(f" you selected {selection}")            
         elif total_c == 1:
             st.error(f"""You selected {total_c} unique company and allocated \${total_l} million in loans.
                      You need to select 4 unique companies and allocate \$500 million in loans.""")
@@ -107,89 +267,41 @@ with st.form("user_allocations"):
                      You need to select 4 unique companies and allocate \$500 million in loans.""")
 
 
-        # if both are true, print success message 
-        # then run the calculation, results, and explanation functions
+if correct:
+   results_df = calculations(data = data, selection = selection, funds = funds)
+   user_output()
+#    analyze_portfolio(results_df)
+#    explain_abs_em(results_df)
+#    explain_pet(results_df, funds)
+else:
+   pass
 
-        # if one or both are false, compile compositie error message and display to user
-        # i.e. actual vs expected
+st.markdown('### Project Context')
+st.markdown(f""" **Objective**
 
+Explore methodologies of financed emissions, using the automotive sector as an example.
 
+Referenced methodology documents include [PCAF's 2022 Financed Emissions Standard](https://carbonaccountingfinancials.com/files/downloads/PCAF-Global-GHG-Standard.pdf), [Scotiabank's Automotive Sector Emissions Targeting](https://www.scotiabank.com/content/dam/scotiabank/corporate/Documents/EN-Emissions_Reduction_Target_Automotive_Sector_1-11-23.pdf), and [Scotiabank's 2023 Climate Report](https://www.scotiabank.com/content/dam/scotiabank/corporate/Documents/Scotiabank_2023_Climate_Report_Final.pdf).
 
-# comp_form = st.form("u_comp")
-# c_names = comp_form.multiselect(label = "Please select exactly four companies to provide loans to", 
-#                       options= data['company'].unique(),
-#                       max_selections= 4,
-#                       key = 'c_names'
-#                       )
+**Data Overview**
 
-# c1_loan = comp_form.slider(label=f"Please select your allocation for {c_names[0]}. A minimum of $25M must be allocated",
-#                         min_value=25,
-#                         max_value=425,
-#                         step = 25) 
+To facilitate this exercise, a micro dataset was created using OEM’s publicly reported emissions and financial data from 2021.
+Applied transformations include aligning reporting units for emissions, sales volumes, and debt + equity base.
 
-# c_submit = comp_form.form_submit_button('Submit') 
+*Note: The fiscal year end for which companies reported financials and emissions differed - thus the data collection periods across companies are not the same. While the values are still representative enough for this exercise, it points to one of many intricacies of accurately deriving financed emissions.* 
 
-# if c_submit:
-#     # Check if total of 4 selected
-#     total = len(set(c_names))
-#     if total == 4:
-#         st.success(f"You selected: {c_names}") # next iteration, print more nicely than this
-#         u_selections = dict.fromkeys(c_names)
-#         launch_loans()
+---
 
+**Data Dictionary**
 
-#     else:
-#         st.error(f"Number of companies selected: {total}. Please select exactly 4")
-#         # c_submit = False # not sure if this makes a difference - looks like no. at least for now
+| Column Name | Description |
+|---|---|
+| company | Company name |
+| scope1 | Scope 1 emissions (tCO2e) |
+| scope2 | Scope 2 emissions (tCO2e) |
+| scope3 | Scope 3 emissions (tCO2e) |
+| sales_vol | Vehicles sold (millions of units) |
+| debt_eq | Debt + Equity base (millions USD) |
 
-# if l_submit:
-#     st.write(c1_loan) # just checking if it's working 
-
-
-# company allocation selection based on prior company selection
-
-    
-    # run validations
-    # if passed print confirmation message with st.success
-    # if failed, print error message and set c_submit to false 
-
-# def comp_val(companies = c_names):
-#     # Check if total of 4 selected
-#     total = len(set(c_names))
-
-
-# would do 
-
-
-# # uncontained multiselect
-# u_cs_1 = st.multiselect(label = "Please select exactly four companies to provide loans to", 
-#                       options= data['company'].unique(),
-#                       max_selections= 4,
-#                       key='u_cs_1'
-#                       )
-
-# returns a list. so let's check in the list that it's 4. 
-# multiselect already enforces spelling and not duplicating entries
-
-
-
-# use this as a reference when i get to the allocation selections
-# c1_a = comp_form.slider(label="Please select your allocation for this company. A minimum of $25M must be allocated",
-#                         min_value=25,
-#                         max_value=425,
-#                         step = 25) 
-
-# st.header('Descriptive Stats')
-# st.write(data.describe())
-
-# st.header('Data Header')
-# st.write(data.head())
-
-
-# st.subheader('Plotly Scatterplot')
-# st.markdown('**Sales Volume vs Scope 1 Emissions**')
-# scatter_fig = px.scatter(data_frame = data, x = 'sales_vol', y = 'scope1', color = 'company',
-#                          labels = {'sales_vol':'Sales Volume (Millions of Vehicles)',
-#                                    'scope1': 'Scope 1 Emissions (tCO2e)',
-#                                    'company': 'Financed Company'})
-# st.plotly_chart(scatter_fig)
+*Note: Data for Volvo is for the Volvo Cars business unit only*          
+            """)
