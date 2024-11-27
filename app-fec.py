@@ -44,6 +44,7 @@ raw = {
 }
 
 data = pd.DataFrame(raw)
+funds = 500
 # u_selections = {}
 st.header('User Inputs')
 # if dynamic set up still failing, change from multiselect maybe and put "Company 1" label on boxes
@@ -59,7 +60,8 @@ with st.form("user_allocations"):
     c1_loan = st.slider(label = 'Please select your allocation to the first company',
                         min_value= 25,
                         max_value= 425,
-                         key='c1_loan')
+                        step= 25,
+                        key='c1_loan')
     
     c2 = st.selectbox(label = 'Please select your second company',
                       options = data['company'].unique(),
@@ -67,7 +69,8 @@ with st.form("user_allocations"):
     c2_loan = st.slider(label = 'Please select your allocation to the second company',
                         min_value= 25,
                         max_value= 425,
-                         key='c2_loan')
+                        step= 25,
+                        key='c2_loan')
     
     c3 = st.selectbox(label = 'Please select your third company',
                       options = data['company'].unique(),
@@ -75,7 +78,8 @@ with st.form("user_allocations"):
     c3_loan = st.slider(label = 'Please select your allocation to the third company',
                         min_value= 25,
                         max_value= 425,
-                         key='c3_loan')
+                        step= 25,
+                        key='c3_loan')
 
     c4 = st.selectbox(label = 'Please select your fourth company',
                       options = data['company'].unique(),
@@ -83,18 +87,31 @@ with st.form("user_allocations"):
     c4_loan = st.slider(label = 'Please select your allocation to the fourth company',
                         min_value= 25,
                         max_value= 425,
-                         key='c4_loan')
+                        step= 25,
+                        key='c4_loan')
     
     submitted = st.form_submit_button("Submit your loan authorizations")
 
     if submitted:
+        total_c = len(set([c1, c2, c3, c4]))
+        total_l = sum([c1_loan, c2_loan, c3_loan, c4_loan])
         # validate 4 unique companies and store results of validation
         # validate total amount is 500 and store results of validation
+        if (total_c == 4) & (total_l == funds):
+            st.success("Thank you for your submission, check out your results below")
+        elif total_c == 1:
+            st.error(f"""You selected {total_c} unique company and allocated \${total_l} million in loans.
+                     You need to select 4 unique companies and allocate \$500 million in loans.""")
+        else: 
+            st.error(f"""You selected {total_c} unique companies and allocated \${total_l} million in loans.
+                     You need to select 4 unique companies and allocate \$500 million in loans.""")
+
 
         # if both are true, print success message 
         # then run the calculation, results, and explanation functions
 
         # if one or both are false, compile compositie error message and display to user
+        # i.e. actual vs expected
 
 
 
