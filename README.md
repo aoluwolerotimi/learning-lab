@@ -4,5 +4,4 @@ This repository houses mini projects which I use to learn by doing. The projects
 --- 
 ### Project List
 *Yes, this is a list of one for now. :relaxed:*
-* **financed-emissions**: [![Streamlit App](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://financed-emissions-calc-aor.streamlit.app/)
-A simple interactive web app for simulating loan decisions and their resulting financed emissions | Exploration Objectives: PCAF methodologies and implementing them programmatically, Streamlit, programming for user interaction
+* **financed-emissions** [![Streamlit App](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://financed-emissions-calc-aor.streamlit.app/): A simple interactive web app for simulating loan decisions and their resulting financed emissions | Exploration Objectives: PCAF methodologies and implementing them programmatically, Streamlit, programming for user interaction
