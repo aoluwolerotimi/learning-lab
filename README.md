@@ -3,6 +3,6 @@ This repository houses mini projects which I use to learn by doing. The projects
 
 --- 
 ### Project List
-*Yes, this is list of one for now. :relaxed:*
-* *financed-emissions*: A simple interactive web app for simulating loan decisions and their resulting financed emissions as per PCAF methodology. | Exploration Objectives: PCAF methodologies and implementing them programattically, Streamlit, User Interaction)
+*Yes, this is a list of one for now. :relaxed:*
+* **financed-emissions**: A simple interactive web app for simulating loan decisions and their resulting financed emissions as per PCAF methodology. | Exploration Objectives: PCAF methodologies and implementing them programattically, Streamlit, User Interaction)
 
