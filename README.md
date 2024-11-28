@@ -1,4 +1,4 @@
-# Welcome to my learning lab
+# Welcome to the learning lab :test tube:
 This repository houses mini projects which I use to learn by doing. The projects and their learning objectives are introduced in brief within this readme and can be explored in detail within their respective folders 
 
 --- 
