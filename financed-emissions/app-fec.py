@@ -5,9 +5,6 @@ import numpy as np
 import random 
 import plotly.express as px
 
-# network url http://10.0.0.61:8501 
-# until i deploy
-
 ###  Data, Variable, and User Defined Function Setup ### 
 ## Data and Variables
 raw = {
