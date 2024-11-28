@@ -56,14 +56,28 @@ def calculations(data, selection, funds):
 
 # Analyzing the portfolio
 def analyze_portfolio(results_df):
-
+  
   # Print absolute financed emissions values
-  for index, row in results_df.iterrows():
-      st.markdown(f"The ${row['authorized']} million loaned to {row['company']} generated {row['abs_em_tonnes']:,d} tCO2e")
+  col1, col2 = st.columns(2)
+
+  with col1:
+     st.markdown(f"The ${results_df.at[0,'authorized']} million loaned to {results_df.at[0,'company']} generated") # results_df.at[0,'company']
+     st.metric(label = "Financed Emissions", value=f"{results_df.at[0,'abs_em_tonnes']:,d} tCO2e")
+
+     st.markdown(f"The ${results_df.at[1,'authorized']} million loaned to {results_df.at[1,'company']} generated") # results_df.at[0,'company']
+     st.metric(label = "Financed Emissions", value=f"{results_df.at[1,'abs_em_tonnes']:,d} tCO2e")
+
+  with col2:
+     st.markdown(f"The ${results_df.at[2,'authorized']} million loaned to {results_df.at[2,'company']} generated") # results_df.at[0,'company']
+     st.metric(label = "Financed Emissions", value=f"{results_df.at[2,'abs_em_tonnes']:,d} tCO2e")
+
+     st.markdown(f"The ${results_df.at[3,'authorized']} million loaned to {results_df.at[3,'company']} generated") # results_df.at[0,'company']
+     st.metric(label = "Financed Emissions", value=f"{results_df.at[3,'abs_em_tonnes']:,d} tCO2e")
 
   # Calculate and print overall physical emissions intensity
   portfolio_intensity = np.average(results_df['prod_intensity'], weights=results_df['perc'])
-  st.markdown(f"\nThe physical emissions intensity of this loan portfolio is {portfolio_intensity:.2f}")
+  st.markdown(f"\nThe physical emissions intensity of this loan portfolio is")
+  st.metric(label = 'Emmissions Intensity', value= f"{portfolio_intensity:.2f}")
 
   # Create and display a donut chart for loan portfolio allocations
   fig_donut = px.pie(
@@ -136,7 +150,7 @@ def explain_pet(results_df, funds):
   Recall that for a single company, their emissions intensity is a normalized view of their emissions relative to their
   economic productivity.
   In the absence of consistent information about production and average lifetime vehicle kilometers across produced vehicle
-  classes, we used the number of vehicles sold as a rough proxy.
+  classes, number of vehicles sold was used as a rough proxy.
 
   Thus, for each company you loaned to, we calculated their emissions intensity as
   their total emissions divided by vehicles sold for the year.
@@ -160,7 +174,7 @@ def explain_pet(results_df, funds):
   # Add portfolio intensity explanation
   explanation += f"""
   Taking a weighted average of the proportion per company and the emissions intensity per company,
-  we arrive at a physical emissions intensity of {portfolio_intensity}.
+  we arrive at a physical emissions intensity of {portfolio_intensity:.2f}.
   """
 
   st.markdown(explanation)
@@ -171,7 +185,7 @@ def user_output():
 
    st.markdown('### Understanding Your Results')
    st.markdown('#### Calculating Absolute Emissions')
-   st.markdown('Let\'s walk through an example to understand how the absolute financed emissions were calculated')
+   st.markdown('Let\'s walk through an example to understand how the absolute financed emissions were calculated.')
    explain_abs_em(results_df)
 
    st.markdown('#### Calculating Physical Emissions Intensity')
@@ -213,7 +227,7 @@ with st.form("user_allocations"):
     c1 = st.selectbox(label = 'Please select your first company',
                       options = data['company'].unique(),
                       index= None,
-                      placeholder= 'Select a company',
+                      placeholder= 'Click to select',
                       key = 'c1')
     c1_loan = st.slider(label = 'Please select your allocation to the first company',
                         min_value= 25,
@@ -224,7 +238,7 @@ with st.form("user_allocations"):
     c2 = st.selectbox(label = 'Please select your second company',
                       options = data['company'].unique(),
                       index= None,
-                      placeholder= 'Select a company',
+                      placeholder= 'Click to select',
                       key = 'c2')
     c2_loan = st.slider(label = 'Please select your allocation to the second company',
                         min_value= 25,
@@ -235,7 +249,7 @@ with st.form("user_allocations"):
     c3 = st.selectbox(label = 'Please select your third company',
                       options = data['company'].unique(),
                       index= None,
-                      placeholder= 'Select a company',
+                      placeholder= 'Click to select',
                       key = 'c3')
     c3_loan = st.slider(label = 'Please select your allocation to the third company',
                         min_value= 25,
@@ -246,7 +260,7 @@ with st.form("user_allocations"):
     c4 = st.selectbox(label = 'Please select your fourth company',
                       options = data['company'].unique(),
                       index= None,
-                      placeholder= 'Select a company',
+                      placeholder= 'Click to select',
                       key = 'c4')
     c4_loan = st.slider(label = 'Please select your allocation to the fourth company',
                         min_value= 25,
@@ -265,8 +279,7 @@ with st.form("user_allocations"):
             st.success("Thank you for your submission, check out your results below")
             correct = True
             # create the dictionary 
-            selection = {c1:c1_loan,c2:c2_loan, c3:c3_loan, c4:c4_loan}
-            st.write(f" you selected {selection}")            
+            selection = {c1:c1_loan,c2:c2_loan, c3:c3_loan, c4:c4_loan}            
         elif total_c == 1:
             st.error(f"""You selected {total_c} unique company and allocated \${total_l} million in loans.
                      You need to select 4 unique companies and allocate \$500 million in loans.""")
