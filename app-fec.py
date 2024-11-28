@@ -64,12 +64,12 @@ def analyze_portfolio(results_df):
      st.markdown(f"The ${results_df.at[0,'authorized']} million loaned to {results_df.at[0,'company']} generated") # results_df.at[0,'company']
      st.metric(label = "Financed Emissions", value=f"{results_df.at[0,'abs_em_tonnes']:,d} tCO2e")
 
-     st.markdown(f"The ${results_df.at[1,'authorized']} million loaned to {results_df.at[1,'company']} generated") # results_df.at[0,'company']
-     st.metric(label = "Financed Emissions", value=f"{results_df.at[1,'abs_em_tonnes']:,d} tCO2e")
-
-  with col2:
      st.markdown(f"The ${results_df.at[2,'authorized']} million loaned to {results_df.at[2,'company']} generated") # results_df.at[0,'company']
      st.metric(label = "Financed Emissions", value=f"{results_df.at[2,'abs_em_tonnes']:,d} tCO2e")
+
+  with col2:
+     st.markdown(f"The ${results_df.at[1,'authorized']} million loaned to {results_df.at[1,'company']} generated") # results_df.at[0,'company']
+     st.metric(label = "Financed Emissions", value=f"{results_df.at[1,'abs_em_tonnes']:,d} tCO2e")
 
      st.markdown(f"The ${results_df.at[3,'authorized']} million loaned to {results_df.at[3,'company']} generated") # results_df.at[0,'company']
      st.metric(label = "Financed Emissions", value=f"{results_df.at[3,'abs_em_tonnes']:,d} tCO2e")
@@ -130,7 +130,6 @@ def analyze_portfolio(results_df):
 
 def explain_abs_em(results_df):
    outstanding = results_df.loc[0, 'outstanding']
-   company = results_df.loc[0, 'company']
    debt_eq = results_df.loc[0, 'debt_eq']
    total_em = results_df.loc[0, 'total_em']
    attr_ratio = round(results_df.loc[0, 'attr_ratio'] * 100, 5)
@@ -150,51 +149,48 @@ def explain_abs_em(results_df):
    st.markdown(f"This attribution ratio is then multiplied by {results_df.loc[0, 'company']}'s total emissions (across scopes 1, 2, and 3)")
    
    st.latex(rf'''
-    \text{{Financed Emissions}} = \text{{Attribution Ratio}} \times \text{{Total Emissions}} = 
+    \text{{Financed Emissions}} = \text{{Attr. Ratio}} \times \text{{Total Emissions}} = 
     \left({attr_ratio} \%\right) \times {total_em} \, \text{{MtCO2e}}
     ''')
    
    st.markdown(f"Expressed in tCO2e (converted from MtCO2e), this gives you your financed emissions value of {results_df.loc[0, 'abs_em_tonnes']:,d} tCO2e")
    
  
-
-
+# test explain_pet with latex and no need to explain a simple fraction, can point them to the donut chart above
 def explain_pet(results_df, funds):
+   portfolio_intensity = np.average(results_df['prod_intensity'], weights=results_df['perc'])
+   company_name = results_df.loc[0, 'company']
+   total_em = results_df.loc[0, 'total_em']
+   sales_vol = results_df.loc[0, 'sales_vol']
+   prod_intensity = results_df.loc[0, 'prod_intensity']
 
-  portfolio_intensity = np.average(results_df['prod_intensity'], weights=results_df['perc'])
+   st.markdown(f""" 
+    Recall that for a single company, their emissions intensity is a normalized view of their emissions relative to their
+    economic productivitsy. 
+    In the absence of consistent information about production and average lifetime vehicle kilometers across produced vehicle
+    classes, number of vehicles sold was used as a proxy.
+    
+    Thus, for each company you loaned to, their emissions intensity was calculates as their total emissions over their 
+    vehicles sold for the year 
+    
+    Let's use {results_df.loc[0, 'company']} as an example again. 
 
-  explanation = """
-  Recall that for a single company, their emissions intensity is a normalized view of their emissions relative to their
-  economic productivity.
-  In the absence of consistent information about production and average lifetime vehicle kilometers across produced vehicle
-  classes, number of vehicles sold was used as a rough proxy.
+               """)
+   
+   st.latex(rf'''
+    \text{{Emissions Intensity}} = 
+    \frac{{\text{{Total Emissions}}}}{{\text{{Vehicles Sold}}}} = 
+    \frac{{{total_em} \, \text{{MtCO2e}}}}{{{sales_vol} \, \text{{million vehicles}}}} 
+    \approx {prod_intensity}
+    ''')
 
-  Thus, for each company you loaned to, we calculated their emissions intensity as
-  their total emissions divided by vehicles sold for the year.
-  """
+   st.markdown(f""" 
+    We also computed the proportion of your total funds loaned out to each company, representing it's portion of your auto sector financing
+    (recall the donut chart above).
+    Taking a weighted average of the proportion per company and the emissions intensity per company we arrive at a physical emissions 
+    intensity of {portfolio_intensity:.2f} for your auto sector portfolio. 
+               """)
 
-  # Add emissions intensity explanation for each company
-  for index, row in results_df.iterrows():
-      explanation += f"""
-      For {row['company']}, this would be {row['total_em']} MtCO2e divided by {row['sales_vol']} million vehicles sold
-      --> {row['prod_intensity']} emissions intensity.
-      """
-
-  # Add portfolio proportion explanation for each company
-  explanation += "\nWe also computed the proportion of your total funds loaned out to each company,\nrepresenting its proportion of your auto sector financing.\n"
-  for index, row in results_df.iterrows():
-      explanation += f"""
-      For {row['company']}, that would be ${row['authorized']} million divided by ${funds} million
-      --> {round(row['perc'] * 100, 2)}%.
-      """
-
-  # Add portfolio intensity explanation
-  explanation += f"""
-  Taking a weighted average of the proportion per company and the emissions intensity per company,
-  we arrive at a physical emissions intensity of {portfolio_intensity:.2f}.
-  """
-
-  st.markdown(explanation)
 
 def user_output():
    st.markdown('### Your Results')
@@ -214,7 +210,7 @@ def user_output():
     Thus, for each company you loaned to, we calculated their emissions intensity as their total emissions divided by vehicles sold for the year.
                """)
    explain_pet(results_df, funds)
-
+   st.divider()
    st.markdown('**Congrats! :tada: Through this simplified example, you\'ve learned a little bit about how institutions measure their financed emissions.**')
 
 
@@ -312,7 +308,7 @@ else:
    pass
 
 
-with st.expander("Open to review project context"):
+with st.expander("Expand to review project context"):
    st.markdown(f""" **Objective**
 
 Explore methodologies of financed emissions, using the automotive sector as an example.
