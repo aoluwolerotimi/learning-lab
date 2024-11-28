@@ -134,8 +134,8 @@ def explain_abs_em(results_df):
    total_em = results_df.loc[0, 'total_em']
    attr_ratio = round(results_df.loc[0, 'attr_ratio'] * 100, 5)
    st.markdown(f"""
-    You loaned \${results_df.loc[0, 'authorized']} million to {results_df.loc[0, 'company']}. This is referred to as the authorized amount.
-    Of that \${results_df.loc[0, 'authorized']} million, {results_df.loc[0, 'company']} used ${results_df.loc[0, 'outstanding']} million. This is referred to as the outstanding amount.
+    You loaned \\${results_df.loc[0, 'authorized']} million to {results_df.loc[0, 'company']}. This is referred to as the authorized amount.
+    Of that \\${results_df.loc[0, 'authorized']} million, {results_df.loc[0, 'company']} used ${results_df.loc[0, 'outstanding']} million. This is referred to as the outstanding amount.
     This outstanding amount is used to calculate your attribution ratio,  representing your contribution to {results_df.loc[0, 'company']}'s activities for the year.
 
     This ratio is calculated as the value outstanding divided by the company's debt and equity that year. In {results_df.loc[0, 'company']}'s case, it would be calculated as follows
@@ -193,7 +193,7 @@ def explain_pet(results_df, funds):
 
 
 def user_output():
-   st.markdown('### Your Results')
+   st.markdown('### Reviewing Your Results')
    analyze_portfolio(results_df)
 
    st.markdown('### Understanding Your Results')
@@ -231,11 +231,11 @@ This measures the share of the companies' emissions financed by your loans.
 For a given company, physical emissions intensity provides a view of its emissions relative to its economic activity. The resulting metrics allows better comparability across companies or portfolios.
             """)
 
-st.markdown('#### Creating Your Loan Portofolio')
+st.markdown('### Creating Your Loan Portofolio')
 
 with st.form("user_allocations"):
     st.markdown(f"""Select the 4 companies you'd like to authorize loans to as well as how much you'd like to loan them.
-                For the loan amounts, you must issue the full \$500 M and each company must receive at least $25M
+                For the loan amounts, you must issue the full \\$500 M and each company must receive at least $25M
                 """)
     c1 = st.selectbox(label = 'Please select your first company',
                       options = data['company'].unique(),
@@ -294,11 +294,11 @@ with st.form("user_allocations"):
             # create the dictionary 
             selection = {c1:c1_loan,c2:c2_loan, c3:c3_loan, c4:c4_loan}            
         elif total_c == 1:
-            st.error(f"""You selected {total_c} unique company and allocated \${total_l} million in loans.
-                     You need to select 4 unique companies and allocate \$500 million in loans.""")
+            st.error(f"""You selected {total_c} unique company and allocated \\${total_l} million in loans.
+                     You need to select 4 unique companies and allocate \\$500 million in loans.""")
         else: 
-            st.error(f"""You selected {total_c} unique companies and allocated \${total_l} million in loans.
-                     You need to select 4 unique companies and allocate \$500 million in loans.""")
+            st.error(f"""You selected {total_c} unique companies and allocated \\${total_l} million in loans.
+                     You need to select 4 unique companies and allocate \\$500 million in loans.""")
 
 
 if correct:
