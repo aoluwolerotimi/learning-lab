@@ -127,20 +127,37 @@ def analyze_portfolio(results_df):
 
 
 # Explain results
+
 def explain_abs_em(results_df):
-  explanation = f"""
-  You loaned \${results_df.loc[0, 'authorized']} million to {results_df.loc[0, 'company']}.
-  Of that \${results_df.loc[0, 'authorized']} million, {results_df.loc[0, 'company']} used ${results_df.loc[0, 'outstanding']} million.
+   outstanding = results_df.loc[0, 'outstanding']
+   company = results_df.loc[0, 'company']
+   debt_eq = results_df.loc[0, 'debt_eq']
+   total_em = results_df.loc[0, 'total_em']
+   attr_ratio = round(results_df.loc[0, 'attr_ratio'] * 100, 5)
+   st.markdown(f"""
+    You loaned \${results_df.loc[0, 'authorized']} million to {results_df.loc[0, 'company']}. This is referred to as the authorized amount.
+    Of that \${results_df.loc[0, 'authorized']} million, {results_df.loc[0, 'company']} used ${results_df.loc[0, 'outstanding']} million. This is referred to as the outstanding amount.
+    This outstanding amount is used to calculate your attribution ratio,  representing your contribution to {results_df.loc[0, 'company']}'s activities for the year.
 
-  This amount that {results_df.loc[0, 'company']} accessed is used to calculate your attribution ratio,  representing your contribution to {results_df.loc[0, 'company']}'s activities for the year.
-  This ratio is calculated as the \${results_df.loc[0, 'outstanding']} million outstanding divided by  {results_df.loc[0, 'company']}'s debt and equity that year (${results_df.loc[0, 'debt_eq']:,d} million),
-  which yields a value of approximately {round(results_df.loc[0, 'attr_ratio'] * 100, 5)}%.
+    This ratio is calculated as the value outstanding divided by the company's debt and equity that year. In {results_df.loc[0, 'company']}'s case, it would be calculated as follows
+               """)
 
-  This ratio is then multiplied by {results_df.loc[0, 'company']}'s total emissions (across scopes 1, 2, and 3),  which came to {results_df.loc[0, 'total_em']} MtCO2e.
-  Expressed in tCO2e (converted from MtCO2e), this gives you your financed emissions value of {results_df.loc[0, 'abs_em_tonnes']:,d} tCO2e.
-  """
+   st.latex(rf'''
+    \text{{Attribution Ratio}} = \frac{{\text{{Outstanding Loan}}}}{{\text{{Debt + Equity}}}} = 
+    \frac{{{outstanding} \, \text{{million}}}}{{{debt_eq:,} \, \text{{million}}}} \approx {attr_ratio}\%
+    ''')
 
-  st.markdown(explanation)
+   st.markdown(f"This attribution ratio is then multiplied by {results_df.loc[0, 'company']}'s total emissions (across scopes 1, 2, and 3)")
+   
+   st.latex(rf'''
+    \text{{Financed Emissions}} = \text{{Attribution Ratio}} \times \text{{Total Emissions}} = 
+    \left({attr_ratio} \%\right) \times {total_em} \, \text{{MtCO2e}}
+    ''')
+   
+   st.markdown(f"Expressed in tCO2e (converted from MtCO2e), this gives you your financed emissions value of {results_df.loc[0, 'abs_em_tonnes']:,d} tCO2e")
+   
+ 
+
 
 def explain_pet(results_df, funds):
 
@@ -276,7 +293,7 @@ with st.form("user_allocations"):
         # validate 4 unique companies and store results of validation
         # validate total amount is 500 and store results of validation
         if (total_c == 4) & (total_l == funds):
-            st.success("Thank you for your submission, check out your results below")
+            st.success("Thank you for your submission! Check out your results below.")
             correct = True
             # create the dictionary 
             selection = {c1:c1_loan,c2:c2_loan, c3:c3_loan, c4:c4_loan}            
@@ -294,8 +311,9 @@ if correct:
 else:
    pass
 
-st.markdown('### Project Context')
-st.markdown(f""" **Objective**
+
+with st.expander("Open to review project context"):
+   st.markdown(f""" **Objective**
 
 Explore methodologies of financed emissions, using the automotive sector as an example.
 
