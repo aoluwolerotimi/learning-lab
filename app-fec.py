@@ -308,7 +308,7 @@ else:
    pass
 
 
-with st.expander("Expand to review project context"):
+with st.expander("Want to learn more about this project's context? Click here"):
    st.markdown(f""" **Objective**
 
 Explore methodologies of financed emissions, using the automotive sector as an example.
