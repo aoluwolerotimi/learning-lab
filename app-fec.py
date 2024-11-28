@@ -87,10 +87,10 @@ def analyze_portfolio(results_df):
       title='Loan Portfolio Allocations Across Companies',
       hole=0.4,
       color = 'company',
-      color_discrete_map= {results_df.at[0,'company']:'lightcyan',
-                           results_df.at[1,'company']: 'cyan',
-                           results_df.at[2,'company']: 'royalblue',
-                           results_df.at[3,'company']: 'darkblue'}
+      color_discrete_map= {results_df.at[0,'company']:'lightgreen',
+                           results_df.at[1,'company']: 'mediumseagreen',
+                           results_df.at[2,'company']: 'forestgreen',
+                           results_df.at[3,'company']: 'darkgreen'}
   )
   st.plotly_chart(fig_donut)
 
@@ -104,7 +104,7 @@ def analyze_portfolio(results_df):
       labels={'abs_em_tonnes': 'Absolute Financed Emissions (tCO2e)', 'company': 'Company'},
       orientation='h',
       color = 'company',
-      color_discrete_sequence= ['lightcyan','cyan','royalblue', 'darkblue']
+      color_discrete_sequence= ['lightgreen','mediumseagreen','forestgreen', 'darkgreen']
   )
   fig_em.update_layout(showlegend = False)
   st.plotly_chart(fig_em)
@@ -118,7 +118,7 @@ def analyze_portfolio(results_df):
       labels={'prod_intensity': 'Physical Emissions Intensity (Emissions relative to vehicles sold)', 'company': 'Company'},
       orientation='h',
       color = 'company',
-      color_discrete_sequence= ['lightcyan','cyan','royalblue', 'darkblue']
+      color_discrete_sequence= ['lightgreen','mediumseagreen','forestgreen', 'darkgreen']
   )
   fig_pet.update_layout(showlegend = False)
   st.plotly_chart(fig_pet)
@@ -130,7 +130,7 @@ def analyze_portfolio(results_df):
 
 def explain_abs_em(results_df):
    outstanding = results_df.loc[0, 'outstanding']
-   debt_eq = results_df.loc[0, 'debt_eq']
+   debt_eq = (results_df.loc[0, 'debt_eq'])/1_000
    total_em = results_df.loc[0, 'total_em']
    attr_ratio = round(results_df.loc[0, 'attr_ratio'] * 100, 5)
    st.markdown(f"""
@@ -143,7 +143,7 @@ def explain_abs_em(results_df):
 
    st.latex(rf'''
     \text{{Attribution Ratio}} = \frac{{\text{{Outstanding Loan}}}}{{\text{{Debt + Equity}}}} = 
-    \frac{{{outstanding} \, \text{{million}}}}{{{debt_eq:,} \, \text{{million}}}} \approx {attr_ratio}\%
+    \frac{{{outstanding} \, \text{{million}}}}{{{debt_eq:,} \, \text{{billion}}}} \approx {attr_ratio}\%
     ''')
 
    st.markdown(f"This attribution ratio is then multiplied by {results_df.loc[0, 'company']}'s total emissions (across scopes 1, 2, and 3)")
